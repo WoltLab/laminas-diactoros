@@ -41,7 +41,8 @@ class HeaderSecurityTest extends TestCase
             ["This is a\r\r test", "This is a test"],
             ["This is a \r\r\n test", "This is a \r\n test"],
             ["This is a \r\n\r\ntest", "This is a test"],
-            ["This is a \r\n\n\r\n test", "This is a \r\n test"]
+            ["This is a \r\n\n\r\n test", "This is a \r\n test"],
+            ["This is a test\n", "This is a test"],
         ];
     }
 
@@ -71,6 +72,7 @@ class HeaderSecurityTest extends TestCase
             ["This is a \xFF test", 'assertFalse'],
             ["This is a \x7F test", 'assertFalse'],
             ["This is a \x7E test", 'assertTrue'],
+            ["This is a test\n", 'assertFalse'],
         ];
     }
 
@@ -95,7 +97,8 @@ class HeaderSecurityTest extends TestCase
             ["This is a\r\r test"],
             ["This is a \r\r\n test"],
             ["This is a \r\n\r\ntest"],
-            ["This is a \r\n\n\r\n test"]
+            ["This is a \r\n\n\r\n test"],
+            ["This is a test\n"],
         ];
     }
 
@@ -108,5 +111,30 @@ class HeaderSecurityTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         HeaderSecurity::assertValid($value);
+    }
+
+    /** @return non-empty-list<array{non-empty-string}> */
+    public function assertNames(): array
+    {
+        return [
+            ["test\n"],
+            ["\ntest"],
+            ["foo\r\n bar"],
+            ["f\x00o"],
+            ["foo bar"],
+            [":foo"],
+            ["foo:"],
+        ];
+    }
+
+    /**
+     * @dataProvider assertNames
+     * @param non-empty-string $value
+     */
+    public function testAssertValidNameRaisesExceptionForInvalidName(string $value): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        HeaderSecurity::assertValidName($value);
     }
 }
